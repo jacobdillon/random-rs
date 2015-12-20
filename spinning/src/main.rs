@@ -28,14 +28,11 @@ pub struct App {
     fg_color: types::Color, // Color for the big square
     bg_color: types::Color, // Color for the little square/background
     loc: (f64, f64), // Location of squares
+    size: f64, // Size multiplier of squares
 }
 
 impl App {
     fn render(&mut self, args: &RenderArgs) {
-        // Squares
-        let big_square = rectangle::square(0.0, 0.0, 80.0);
-        let little_square = rectangle::square(0.0, 0.0, 40.0);
-
         // Assign rotation to squares
         let big_rotation = self.big_rotation;
         let little_rotation = self.little_rotation;
@@ -47,6 +44,17 @@ impl App {
         // Set x/y to current x/y
         let (x, y) = self.loc;
 
+        // Set size multiplier to current size
+        let size = self.size;
+
+        // Set calculated size of squares
+        let big_size = size * 10.0;
+        let little_size = big_size / 2.0;
+
+        // Squares
+        let big_square = rectangle::square(0.0, 0.0, big_size);
+        let little_square = rectangle::square(0.0, 0.0, little_size);
+
         self.gl.draw(args.viewport(), |c, gl| {
             // Clear the screen.
             clear(bg_color, gl);
@@ -55,11 +63,11 @@ impl App {
             let big_transform = c.transform
                                  .trans(x, y)
                                  .rot_rad(big_rotation)
-                                 .trans(-40.0, -40.0);
+                                 .trans(-1.0 * (big_size / 2.0), -1.0 * (big_size / 2.0));
             let little_transform = c.transform
                                     .trans(x, y)
                                     .rot_rad(little_rotation)
-                                    .trans(-20.0, -20.0);
+                                    .trans(-1.0 * (little_size / 2.0), -1.0 * (little_size / 2.0));
 
             // Draw the squares rotating around the middle of the screen.
             rectangle(fg_color, big_square, big_transform, gl);
@@ -107,8 +115,9 @@ fn main() {
     // Change this to OpenGL::V2_1 if not working
     let opengl = OpenGL::V3_2;
 
-    let mut direction: f64 = 1.0;
+    let mut direction = 1.0;
     let mut indexes: (usize, usize) = (5, 0);
+    let mut cursor = (0.0, 0.0);
 
     // Create an Glutin window
     let window: Window = WindowSettings::new("spinning", [200, 200])
@@ -125,6 +134,7 @@ fn main() {
         fg_color: RAINBOW[indexes.0],
         bg_color: RAINBOW[indexes.1],
         loc: (100.0, 100.0),
+        size: 8.0,
     };
 
     for e in window.events() {
@@ -144,15 +154,37 @@ fn main() {
                 // Change direction
                 Button::Keyboard(Key::Right) => direction = 1.0,
                 Button::Keyboard(Key::Left) => direction = -1.0,
+                Button::Mouse(MouseButton::Right) => {
+                    if direction == 1.0 {
+                        direction = -1.0
+                    } else {
+                        direction = 1.0
+                    }
+                }
 
                 // Move rectangles
                 Button::Keyboard(Key::W) => app.loc.1 -= 5.0,
                 Button::Keyboard(Key::S) => app.loc.1 += 5.0,
                 Button::Keyboard(Key::A) => app.loc.0 -= 5.0,
                 Button::Keyboard(Key::D) => app.loc.0 += 5.0,
+                Button::Mouse(MouseButton::Left) => {
+                    app.loc.0 = cursor.0;
+                    app.loc.1 = cursor.1;
+                }
 
-                // Reset position
-                Button::Keyboard(Key::Space) => app.loc = (100.0, 100.0),
+                // Change size
+                Button::Keyboard(Key::Q) => {
+                    if app.size != 1.0 {
+                        app.size -= 1.0
+                    }
+                }
+                Button::Keyboard(Key::E) => app.size += 1.0,
+
+                // Reset position and size
+                Button::Keyboard(Key::Space) => {
+                    app.loc = (100.0, 100.0);
+                    app.size = 8.0;
+                }
 
                 // Change color
                 Button::Keyboard(Key::Up) => indexes = app.update_color(indexes, 1),
@@ -162,5 +194,17 @@ fn main() {
                 _ => (),
             }
         }
+
+        // Get mouse cursor position
+        e.mouse_cursor(|x, y| cursor = (x, y));
+
+        // Get mouse scroll
+        e.mouse_scroll(|dx, dy| {
+            if dy == 1.0 || dx == 1.0 {
+                app.size += 1.0
+            } else if (dy == -1.0 || dx == -1.0) && app.size != 1.0 {
+                app.size -= 1.0
+            }
+        });
     }
 }
