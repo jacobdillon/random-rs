@@ -2,7 +2,7 @@
 
 ## DESCRIPTION
 
-Spins 2 squares, with changeable color and direction using the arrow keys.
+Spins 2 squares, with changeable color, direction, and location using WASD and the arrow keys.
 
 ## RUNNING
 
