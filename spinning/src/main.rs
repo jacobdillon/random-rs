@@ -27,6 +27,7 @@ pub struct App {
     little_rotation: f64, // Rotation for the little square
     fg_color: types::Color, // Color for the big square
     bg_color: types::Color, // Color for the little square/background
+    loc: (f64, f64), // Location of squares
 }
 
 impl App {
@@ -43,8 +44,8 @@ impl App {
         let fg_color = self.fg_color;
         let bg_color = self.bg_color;
 
-        // Define center of image
-        let (x, y) = ((args.width / 2) as f64, (args.height / 2) as f64);
+        // Set x/y to current x/y
+        let (x, y) = self.loc;
 
         self.gl.draw(args.viewport(), |c, gl| {
             // Clear the screen.
@@ -95,7 +96,7 @@ impl App {
         (fg_index, bg_index)
     }
 
-    fn update(&mut self, args: &UpdateArgs, direction: f64) {
+    fn update_rotation(&mut self, args: &UpdateArgs, direction: f64) {
         // Rotate 2 radians per second
         self.big_rotation += direction * (2.0 * args.dt);
         self.little_rotation -= direction * (2.0 * args.dt);
@@ -123,6 +124,7 @@ fn main() {
         little_rotation: 0.0,
         fg_color: RAINBOW[indexes.0],
         bg_color: RAINBOW[indexes.1],
+        loc: (100.0, 100.0),
     };
 
     for e in window.events() {
@@ -133,7 +135,7 @@ fn main() {
 
         // Update rotation
         if let Some(u) = e.update_args() {
-            app.update(&u, direction);
+            app.update_rotation(&u, direction);
         }
 
         // Get button press
@@ -142,6 +144,15 @@ fn main() {
                 // Change direction
                 Button::Keyboard(Key::Right) => direction = 1.0,
                 Button::Keyboard(Key::Left) => direction = -1.0,
+
+                // Move rectangles
+                Button::Keyboard(Key::W) => app.loc.1 -= 5.0,
+                Button::Keyboard(Key::S) => app.loc.1 += 5.0,
+                Button::Keyboard(Key::A) => app.loc.0 -= 5.0,
+                Button::Keyboard(Key::D) => app.loc.0 += 5.0,
+
+                // Reset position
+                Button::Keyboard(Key::Space) => app.loc = (100.0, 100.0),
 
                 // Change color
                 Button::Keyboard(Key::Up) => indexes = app.update_color(indexes, 1),
