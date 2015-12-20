@@ -22,9 +22,9 @@ const VIOLET: [f32; 4] = [0.56078431372, 0.0, 1.0, 1.0];
 const RAINBOW: [types::Color; 6] = [RED, ORANGE, YELLOW, GREEN, BLUE, VIOLET];
 
 pub struct App {
-    gl: GlGraphics, // OpenGL drawing backend.
-    big_rotation: f64, // Rotation for the big square.
-    little_rotation: f64, // Rotation for the little square.
+    gl: GlGraphics, // OpenGL drawing backend
+    big_rotation: f64, // Rotation for the big square
+    little_rotation: f64, // Rotation for the little square
     fg_color: types::Color, // Color for the big square
     bg_color: types::Color, // Color for the little square/background
 }
@@ -60,15 +60,13 @@ impl App {
                                     .rot_rad(little_rotation)
                                     .trans(-20.0, -20.0);
 
-            // Draw a box rotating around the middle of the screen.
+            // Draw the squares rotating around the middle of the screen.
             rectangle(fg_color, big_square, big_transform, gl);
             rectangle(bg_color, little_square, little_transform, gl)
         });
     }
 
     fn update_color(&mut self, indexes: (usize, usize), up_or_down: i32) -> (usize, usize) {
-        // Array of colors in rainbow order
-
         // Set new indexes to old indexes
         let mut fg_index = indexes.0;
         let mut bg_index = indexes.1;
@@ -105,20 +103,20 @@ impl App {
 }
 
 fn main() {
-    // Change this to OpenGL::V2_1 if not working.
+    // Change this to OpenGL::V2_1 if not working
     let opengl = OpenGL::V3_2;
 
     let mut direction: f64 = 1.0;
     let mut indexes: (usize, usize) = (5, 0);
 
-    // Create an Glutin window.
+    // Create an Glutin window
     let window: Window = WindowSettings::new("spinning", [200, 200])
                              .opengl(opengl)
                              .exit_on_esc(true)
                              .build()
                              .unwrap();
 
-    // Create a new game and run it.
+    // Create a new App and run it
     let mut app = App {
         gl: GlGraphics::new(opengl),
         big_rotation: 0.0,
@@ -128,20 +126,28 @@ fn main() {
     };
 
     for e in window.events() {
+        // Render app
         if let Some(r) = e.render_args() {
             app.render(&r);
         }
 
+        // Update rotation
         if let Some(u) = e.update_args() {
             app.update(&u, direction);
         }
 
+        // Get button press
         if let Some(button) = e.press_args() {
             match button {
+                // Change direction
                 Button::Keyboard(Key::Right) => direction = 1.0,
                 Button::Keyboard(Key::Left) => direction = -1.0,
+
+                // Change color
                 Button::Keyboard(Key::Up) => indexes = app.update_color(indexes, 1),
                 Button::Keyboard(Key::Down) => indexes = app.update_color(indexes, 0),
+
+                // Default
                 _ => (),
             }
         }
