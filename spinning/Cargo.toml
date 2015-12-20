@@ -1,0 +1,10 @@
+[package]
+name = "spinning"
+version = "0.1.0"
+authors = ["jad340 <jad340@openmailbox.org>"]
+
+[dependencies]
+piston = "*"
+piston2d-graphics = "*"
+pistoncore-glutin_window = "*"
+piston2d-opengl_graphics = "*"
